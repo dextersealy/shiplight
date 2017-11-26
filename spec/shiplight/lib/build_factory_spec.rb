@@ -1,6 +1,7 @@
-require_relative '../../lib/build_factory'
+require 'spec_helper'
+require 'build_factory'
 
-describe BuildFactory do
+describe Shiplight::BuildFactory do
   context '#each' do
     context 'without data' do
       it 'does not yield' do
@@ -23,7 +24,7 @@ describe BuildFactory do
       end
 
       it 'yields builds' do
-        subject.each { |b| expect(b).to be_a(Build) }
+        subject.each { |b| expect(b).to be_a(Shiplight::Build) }
       end
 
       it 'passes project to build' do

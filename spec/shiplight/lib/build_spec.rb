@@ -1,6 +1,7 @@
-require_relative '../../lib/build'
+require 'spec_helper'
+require 'build'
 
-describe Build do
+describe Shiplight::Build do
   let(:project) { double(:project, repo: 'something') }
   let(:data) do
     {

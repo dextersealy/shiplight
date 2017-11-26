@@ -1,4 +1,5 @@
-require_relative '../../lib/build_monitor'
+require 'spec_helper'
+require 'build_monitor'
 
 class DummyClient
   def initialize(projects, countdown = 1)
@@ -13,7 +14,7 @@ class DummyClient
   end
 end
 
-describe BuildMonitor do
+describe Shiplight::BuildMonitor do
   let(:builds1) { [{ 'status' => nil, 'branch' => 'X', 'user' => 'a' }] }
   let(:builds2) { [{ 'status' => nil, 'branch' => 'Y', 'user' => 'b' }] }
   let(:builds3) { [{ 'status' => nil, 'branch' => 'Z', 'user' => 'c' }] }
@@ -25,13 +26,15 @@ describe BuildMonitor do
     ]
   end
   let(:repeat_count) { 1 }
-  let(:client) { DummyClient.new(ProjectFactory.new(projects), repeat_count) }
+  let(:client) do
+    DummyClient.new(Shiplight::ProjectFactory.new(projects), repeat_count)
+  end
   let(:indicator) { double(:indicator) }
   let(:logger) { double(:logger) }
 
   before do
-    allow(CodeshipClient).to receive(:new).and_return(client)
-    allow(StatusIndicator).to receive(:new).and_return(indicator)
+    allow(Shiplight::CodeshipClient).to receive(:new).and_return(client)
+    allow(Shiplight::StatusIndicator).to receive(:new).and_return(indicator)
     allow(Logger).to receive(:new).and_return(logger)
     allow(indicator).to receive(:status=)
     allow(logger).to receive(:info)

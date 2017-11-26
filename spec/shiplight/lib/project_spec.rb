@@ -1,6 +1,7 @@
-require_relative '../../lib/project'
+require 'spec_helper'
+require 'project'
 
-describe Project do
+describe Shiplight::Project do
   let(:builds) { [{ 'id' => '1' }, { 'id' => '2' }] }
   let(:data) do
     {

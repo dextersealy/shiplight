@@ -1,3 +1,10 @@
+PATH
+  remote: .
+  specs:
+    shiplight (0.1.0)
+      httparty (~> 0.15)
+      rb-blink1 (~> 0.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -6,6 +13,7 @@ GEM
     httparty (0.15.6)
       multi_xml (>= 0.5.2)
     multi_xml (0.6.0)
+    rake (10.5.0)
     rb-blink1 (0.0.7)
     rspec (3.7.0)
       rspec-core (~> 3.7.0)
@@ -25,10 +33,13 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  bundler (~> 1.15)
   byebug
   httparty
+  rake (~> 10.0)
   rb-blink1
   rspec
+  shiplight!
 
 BUNDLED WITH
    1.15.4
