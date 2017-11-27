@@ -18,6 +18,41 @@ Or install it yourself as:
 
 ## Usage
 
+Connect the [blink(1)](https://blink1.thingm.com/) USB notification light to your computer.
+
+### Configure API key
+
+Shiplight uses the [Codeship API 1.0](https://apidocs.codeship.com/v1/introduction) to monitor projects. It provides access to basic project and build information via an API key. The API key can be found on your [Codeship account page](https://app.codeship.com/user/edit).
+
+Set the `CODESHIP_API_KEY` environment variable to your Codeship API key.
+
+### Monitor all projects
+
+To monitor all projects associated with your API key, run Shiplight with no arguments:
+
+    $ shiplight
+
+### Monitor specific project(s)
+
+Use the `--repo` (`-r`) command line switch to monitor builds for a specific project:
+
+    $ shiplight -r <repo-name>
+
+Where *\<repo-name\>* is the full or partial name of the Github repository to monitor.
+
+### Monitor commits by a specific user
+
+Use the `--user` (`-u`) command line switch to monitor builds triggered by a specific user:
+
+    $ shiplight -u <user-name>
+
+Where *\<user-name\>* is a full or partial Github user name.
+
+### Monitor commits by a specific project and user
+
+Combine the `-r` and `-u` switches to monitor builds for a specific project and user:
+
+    $ shiplight -u <user-name> -r <repo-name>
 
 ## Development
 
