@@ -54,12 +54,12 @@ describe Shiplight::BuildMonitor do
 
     subject { described_class.new(interval: 0.1) }
 
-    describe 'with \'running\', \'error\' and \'success\' builds' do
+    describe 'with \'testing\', \'error\' and \'success\' builds' do
       before do
-        set(builds1 => 'error', builds2 => 'success', builds3 => 'running')
+        set(builds1 => 'error', builds2 => 'success', builds3 => 'testing')
       end
 
-      include_examples :sets_the_status, 'running'
+      include_examples :sets_the_status, 'testing'
     end
 
     describe 'with \'error\' and \'success\' builds' do

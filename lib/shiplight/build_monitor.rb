@@ -27,7 +27,7 @@ module Shiplight
 
     def current_status
       builds = builds_by_status
-      %w[running error success].find do |status|
+      %w[testing error success].find do |status|
         next unless builds.key?(status)
         builds[status].each { |build| log(build) }
       end
