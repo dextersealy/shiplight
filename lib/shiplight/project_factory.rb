@@ -4,7 +4,7 @@ module Shiplight
   class ProjectFactory
     include Enumerable
 
-    def initialize(data)
+    def initialize(data = nil)
       @data = data || []
     end
 

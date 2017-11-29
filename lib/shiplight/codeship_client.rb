@@ -5,16 +5,21 @@ require_relative 'project_factory'
 module Shiplight
   class CodeshipClient
     HOST = 'codeship.com/api/v1'.freeze
+    HTTP_CLIENT_ERRORS = [
+      HTTParty::ResponseError,
+      Timeout::Error,
+      SocketError
+    ].freeze
 
     def initialize
       ensure_api_key
     end
 
     def projects
-      path = get_path('projects')
-      response = HTTParty.get(path)
-      data = JSON.parse(response.body)
-      ProjectFactory.new(data['projects'])
+      result = HTTParty.get(get_path('projects'), format: :json)
+      ProjectFactory.new(result.parsed_response['projects']) if result.success?
+    rescue *HTTP_CLIENT_ERRORS
+      ProjectFactory.new
     end
 
     private
