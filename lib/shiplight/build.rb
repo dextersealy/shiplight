@@ -15,6 +15,14 @@ module Shiplight
       @data['github_username']
     end
 
+    def match?(name)
+      name.nil? || user && Regexp.new(name, Regexp::IGNORECASE).match?(user)
+    end
+
+    def ==(other)
+      repo == other.repo && branch == other.branch && status == other.status
+    end
+
     def method_missing(method_name, *args)
       @data.fetch(method_name.to_s) { super }
     end

@@ -14,6 +14,10 @@ module Shiplight
       BuildFactory.new(self, @data['builds'])
     end
 
+    def match?(name)
+      name.nil? || repo && Regexp.new(name, Regexp::IGNORECASE).match?(repo)
+    end
+
     def method_missing(method_name, *args)
       @data.fetch(method_name.to_s) { super }
     end

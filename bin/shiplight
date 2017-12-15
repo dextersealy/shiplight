@@ -3,13 +3,15 @@
 require 'shiplight'
 
 USAGE = <<USAGE.strip.freeze
-  Usage: buildmon [-u user] [-r repo]
+  Usage: shiplight [-i interval] [-r repo] [-u user] [-v]
 USAGE
 
 HELP = <<HELP.freeze
   -h, --help              show this help
+  -i, --interval          polling interval (seconds)
   -r, --repo <name>       project to monitor
   -u, --user <name>       user to monitor
+  -v, --verbose           produce verbose output
 HELP
 
 args = {}
@@ -18,8 +20,10 @@ next_arg = nil
 ARGV.each do |arg|
   case arg
   when '-h', '--help' then args[:help] = true
-  when '-u', '--user' then next_arg = :user
+  when '-i', '--interval' then next_arg = :interval
   when '-r', '--repo' then next_arg = :repo
+  when '-u', '--user' then next_arg = :user
+  when '-v', '--verbose' then args[:verbose] = true
   else
     if next_arg
       args[next_arg] = arg
