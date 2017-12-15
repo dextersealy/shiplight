@@ -8,7 +8,9 @@ module Shiplight
     HTTP_CLIENT_ERRORS = [
       HTTParty::ResponseError,
       Timeout::Error,
-      SocketError
+      SocketError,
+      Errno::ENETDOWN,
+      Errno::ENETUNREACH
     ].freeze
 
     def initialize
