@@ -23,6 +23,7 @@ module Shiplight
     end
 
     def solid(color)
+      clear_pattern
       led.fade_to_rgb(DELAY, *color)
     end
 
