@@ -10,7 +10,8 @@ module Shiplight
       Timeout::Error,
       SocketError,
       Errno::ENETDOWN,
-      Errno::ENETUNREACH
+      Errno::ENETUNREACH,
+      Errno::ECONNRESET
     ].freeze
 
     def initialize
@@ -18,8 +19,13 @@ module Shiplight
     end
 
     def projects
-      result = HTTParty.get(get_path('projects'), format: :json)
-      ProjectFactory.new(result.parsed_response['projects']) if result.success?
+      response = HTTParty.get(get_path('projects'), format: :json)
+      parsed_response = if response.success?
+                          response.parsed_response['projects']
+                        else
+                          []
+                        end
+      ProjectFactory.new(parsed_response)
     rescue *HTTP_CLIENT_ERRORS
       ProjectFactory.new
     end
