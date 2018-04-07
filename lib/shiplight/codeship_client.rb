@@ -6,12 +6,14 @@ module Shiplight
   class CodeshipClient
     HOST = 'codeship.com/api/v1'.freeze
     HTTP_CLIENT_ERRORS = [
-      HTTParty::ResponseError,
-      Timeout::Error,
-      SocketError,
+      Errno::ECONNRESET,
       Errno::ENETDOWN,
       Errno::ENETUNREACH,
-      Errno::ECONNRESET
+      Errno::ETIMEDOUT,
+      HTTParty::ResponseError,
+      SocketError,
+      Timeout::Error,
+      OpenSSL::SSL::SSLError
     ].freeze
 
     def initialize

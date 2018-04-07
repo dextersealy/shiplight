@@ -40,13 +40,12 @@ module Shiplight
     end
 
     def current_builds
-      builds.uniq { |build| [build.repo, build.branch] }
+      uniq_builds.select { |build| build.match?(user) }
     end
 
-    def builds
-      projects.map do |project|
-        project.builds.select { |build| build.match?(user) }
-      end.flatten
+    def uniq_builds
+      all_builds = projects.map { |project| project.builds.to_a }.flatten
+      all_builds.uniq { |build| [build.repo, build.branch] }
     end
 
     def projects
