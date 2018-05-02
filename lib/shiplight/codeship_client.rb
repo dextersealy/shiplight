@@ -13,7 +13,8 @@ module Shiplight
       HTTParty::ResponseError,
       SocketError,
       Timeout::Error,
-      OpenSSL::SSL::SSLError
+      OpenSSL::SSL::SSLError,
+      Zlib::DataError
     ].freeze
 
     def initialize
