@@ -11,6 +11,7 @@ module Shiplight
       Errno::ENETDOWN,
       Errno::ENETUNREACH,
       Errno::ETIMEDOUT,
+      Errno::EHOSTUNREACH,
       HTTParty::ResponseError,
       OpenSSL::SSL::SSLError,
       SocketError,
