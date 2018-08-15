@@ -9,8 +9,10 @@ module Shiplight
     def initialize(options = {})
       @user = options[:user]
       @repo = options[:repo]
+      @exclude = options[:exclude]
       @verbose = options[:verbose] || false
-      @execution_interval = options[:interval].to_i || EXECUTION_INTERVAL
+      interval = options[:interval].to_i if options[:interval]
+      @execution_interval = interval || EXECUTION_INTERVAL
       @previous_builds = []
     end
 
@@ -27,7 +29,7 @@ module Shiplight
 
     private
 
-    attr_reader :user, :repo, :execution_interval
+    attr_reader :user, :repo, :exclude, :execution_interval
     attr_accessor :previous_builds
 
     def build_status
@@ -49,7 +51,10 @@ module Shiplight
     end
 
     def projects
-      client.projects.select { |project| project.match?(repo) }
+      projects = client.projects
+      projects = projects.select { |project| project.match?(repo) } if repo
+      projects = projects.reject { |project| project.match?(exclude) } if exclude
+      projects
     end
 
     def verbose?

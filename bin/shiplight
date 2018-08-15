@@ -7,10 +7,11 @@ USAGE = <<USAGE.strip.freeze
 USAGE
 
 HELP = <<HELP.freeze
+  -e, --exclude <regex>   project(s) to exclude from monitoring
   -h, --help              show this help
   -i, --interval          polling interval (seconds)
-  -r, --repo <name>       project to monitor
-  -u, --user <name>       user to monitor
+  -r, --repo <regex>      project(s) to monitor
+  -u, --user <regex>      user to monitor
   -v, --verbose           produce verbose output
 HELP
 
@@ -19,6 +20,7 @@ next_arg = nil
 
 ARGV.each do |arg|
   case arg
+  when '-e', '--exclude' then next_arg = :exclude
   when '-h', '--help' then args[:help] = true
   when '-i', '--interval' then next_arg = :interval
   when '-r', '--repo' then next_arg = :repo
