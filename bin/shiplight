@@ -13,6 +13,7 @@ HELP = <<HELP.freeze
   -r, --repo <regex>      project(s) to monitor
   -u, --user <regex>      user to monitor
   -v, --verbose           produce verbose output
+  -w, --within <n>        monitor builds finished within the past <n> hours
 HELP
 
 args = {}
@@ -26,6 +27,7 @@ ARGV.each do |arg|
   when '-r', '--repo' then next_arg = :repo
   when '-u', '--user' then next_arg = :user
   when '-v', '--verbose' then args[:verbose] = true
+  when '-w', '--within' then next_arg = :within
   else
     if next_arg
       args[next_arg] = arg

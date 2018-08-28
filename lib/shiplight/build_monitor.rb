@@ -4,15 +4,15 @@ require_relative 'status_indicator'
 
 module Shiplight
   class BuildMonitor
-    EXECUTION_INTERVAL = 30
+    POLL_INTERVAL = 30
 
     def initialize(options = {})
       @user = options[:user]
       @repo = options[:repo]
       @exclude = options[:exclude]
       @verbose = options[:verbose] || false
-      interval = options[:interval].to_i if options[:interval]
-      @execution_interval = interval || EXECUTION_INTERVAL
+      @cutoff = options[:within] ? options[:within].to_i : 0
+      @interval = options[:interval] ? options[:interval].to_i : POLL_INTERVAL
       @previous_builds = []
     end
 
@@ -21,7 +21,7 @@ module Shiplight
       logger << "=> Ctrl-C to stop monitoring\n"
       loop do
         indicator.status = build_status
-        sleep(execution_interval)
+        sleep(interval)
       end
     rescue Interrupt
       indicator.status = nil
@@ -29,7 +29,7 @@ module Shiplight
 
     private
 
-    attr_reader :user, :repo, :exclude, :execution_interval
+    attr_reader :user, :repo, :exclude, :interval, :cutoff
     attr_accessor :previous_builds
 
     def build_status
@@ -42,12 +42,16 @@ module Shiplight
     end
 
     def current_builds
-      uniq_builds.select { |build| build.match?(user) }
+      return filtered_builds unless cutoff > 0
+      since = Time.now - cutoff * 60 * 60
+      filtered_builds.select { |build| Time.parse(build.finished_at) >= since }
     end
 
-    def uniq_builds
-      all_builds = projects.map { |project| project.builds.to_a }.flatten
-      all_builds.uniq { |build| [build.repo, build.branch] }
+    def filtered_builds
+      builds = projects.map { |project| project.builds.to_a }.flatten
+      builds = builds.uniq { |build| [build.repo, build.branch] }
+      builds = builds.select { |build| build.match?(user) }
+      builds
     end
 
     def projects
