@@ -1,16 +1,40 @@
 require 'spec_helper'
 require 'build_monitor'
 
-class DummyClient
-  def initialize(projects, countdown = 1)
-    @countdown = countdown
+class MockOrganization
+  def initialize(client, projects, countdown)
+    @client = client
     @projects = projects
+    @countdown = countdown
   end
+
+  attr_reader :client
 
   def projects
     raise Interrupt if @countdown.zero?
     @countdown -= 1
-    @projects
+    Shiplight::ProjectFactory.new(self, @projects)
+  end
+
+  def path
+    'org_path'
+  end
+end
+
+class MockClient
+  def initialize(projects, countdown = 1)
+    @organization = MockOrganization.new(self, projects, countdown)
+    @projects = projects
+  end
+
+  attr_reader :organization
+
+  def get(path)
+    @projects.each do |project|
+      if path == "#{organization.path}/projects/#{project['uuid']}/builds"
+        break { 'builds' => project['builds'] }
+      end
+    end
   end
 end
 
@@ -20,24 +44,21 @@ describe Shiplight::BuildMonitor do
   let(:builds3) { [{ 'status' => nil, 'branch' => 'Z', 'user' => 'c' }] }
   let(:projects) do
     [
-      { 'uuid' => 1, 'repository_name' => 'A', 'builds' => builds1 },
-      { 'uuid' => 2, 'repository_name' => 'B', 'builds' => builds2 },
-      { 'uuid' => 3, 'repository_name' => 'C', 'builds' => builds3 }
+      { 'uuid' => 1, 'name' => 'A', 'builds' => builds1 },
+      { 'uuid' => 2, 'name' => 'B', 'builds' => builds2 },
+      { 'uuid' => 3, 'name' => 'C', 'builds' => builds3 }
     ]
   end
   let(:repeat_count) { 1 }
-  let(:client) do
-    DummyClient.new(Shiplight::ProjectFactory.new(projects), repeat_count)
-  end
-  let(:indicator) { double(:indicator) }
-  let(:logger) { double(:logger) }
+  let(:client) { MockClient.new(projects, repeat_count) }
+  let(:indicator) { double(:indicator, status: nil) }
+  let(:logger) { double(:logger, info: nil, '<<' => nil) }
 
   before do
     allow(Shiplight::CodeshipClient).to receive(:new).and_return(client)
     allow(Shiplight::StatusIndicator).to receive(:new).and_return(indicator)
     allow(Logger).to receive(:new).and_return(logger)
     allow(indicator).to receive(:status=)
-    allow(logger).to receive(:info)
   end
 
   def set(builds)
@@ -54,7 +75,7 @@ describe Shiplight::BuildMonitor do
 
     subject { described_class.new(interval: 0.1) }
 
-    describe 'with \'testing\', \'error\' and \'success\' builds' do
+    describe "with 'testing', 'error' and 'success' builds" do
       before do
         set(builds1 => 'error', builds2 => 'success', builds3 => 'testing')
       end
@@ -62,7 +83,7 @@ describe Shiplight::BuildMonitor do
       include_examples :sets_the_status, 'testing'
     end
 
-    describe 'with \'error\' and \'success\' builds' do
+    describe "with 'error' and 'success' builds" do
       before do
         set(builds1 => 'success', builds2 => 'success', builds3 => 'error')
       end
@@ -70,7 +91,7 @@ describe Shiplight::BuildMonitor do
       include_examples :sets_the_status, 'error'
     end
 
-    describe 'with \'success\' builds' do
+    describe "with 'success' builds" do
       before do
         set(builds1 => 'success', builds2 => 'success', builds3 => 'success')
       end

@@ -1,10 +1,11 @@
 require 'HTTParty'
 require 'json'
-require_relative 'project_factory'
+require 'inifile'
+require_relative 'organization_factory'
 
 module Shiplight
   class CodeshipClient
-    HOST = 'codeship.com/api/v1'.freeze
+    HOST = 'api.codeship.com/v2'.freeze
     HTTP_CLIENT_ERRORS = [
       Errno::EADDRNOTAVAIL,
       Errno::ECONNRESET,
@@ -20,35 +21,75 @@ module Shiplight
     ].freeze
 
     def initialize
-      ensure_api_key
+      ensure_credentials
+      login
     end
 
-    def projects
-      response = HTTParty.get(get_path('projects'), format: :json)
-      parsed_response = if response.success?
-                          response.parsed_response['projects']
-                        else
-                          []
-                        end
-      ProjectFactory.new(parsed_response)
-    rescue *HTTP_CLIENT_ERRORS
-      ProjectFactory.new
+    def get(endpoint)
+      response = HTTParty.get(
+        path_to(endpoint),
+        headers: { authorization: access_token },
+        format: :json
+      )
+      return response.parsed_response if response.success?
+      login if response.unauthorized?
+      nil
+    rescue *HTTP_CLIENT_ERRORS => e
+      puts "ignoring error #{e.message}"
+    end
+
+    def organization
+      organizations.first
     end
 
     private
 
-    def ensure_api_key
-      return if api_key
-      puts 'error: CODESHIP_API_KEY not defined'
+    attr_reader :access_token
+
+    def login
+      response = HTTParty.post(
+        path_to('auth'),
+        basic_auth: { username: username, password: password }
+      )
+      raise 'login failed' unless response.success?
+      @access_token = response.parsed_response['access_token']
+      @data = response.parsed_response['organizations']
+    end
+
+    def organizations
+      OrganizationFactory.new(self, @data)
+    end
+
+    def path_to(endpoint)
+      "https://#{HOST}/#{endpoint}"
+    end
+
+    def ensure_credentials
+      return if username && password
+      puts "error: CodeShip credentials not found in #{inifile_path}"
       raise Interrupt
     end
 
-    def api_key
-      @api_key ||= ENV['CODESHIP_API_KEY']
+    def username
+      credentials['username']
     end
 
-    def get_path(endpoint)
-      "https://#{HOST}/#{endpoint}.json?api_key=#{api_key}"
+    def password
+      credentials['password']
+    end
+
+    def credentials
+      @credentials ||= load_credentials
+    end
+
+    def load_credentials
+      section = ENV['SHIPLIGHT_DEFAULT'] || 'default'
+      inifile = IniFile.load(inifile_path)
+      inifile ? inifile[section] : {}
+    end
+
+    def inifile_path
+      File.join(ENV['HOME'], '.shiplight', 'credentials')
     end
   end
 end

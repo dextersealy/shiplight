@@ -1,6 +1,7 @@
 Metrics/BlockLength:
   Exclude:
     - spec/**/*.rb
+    - shiplight.gemspec
 
 Style/Documentation:
   Enabled: false

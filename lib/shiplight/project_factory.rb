@@ -4,7 +4,8 @@ module Shiplight
   class ProjectFactory
     include Enumerable
 
-    def initialize(data = nil)
+    def initialize(organization, data = nil)
+      @organization = organization
       @data = data || []
     end
 
@@ -12,7 +13,7 @@ module Shiplight
       uuids = []
       @data.each do |project|
         next if uuids.include?(project['uuid'])
-        yield Project.new(project)
+        yield Project.new(@organization, project)
         uuids << project['uuid']
       end
     end

@@ -2,10 +2,10 @@ require 'spec_helper'
 require 'build'
 
 describe Shiplight::Build do
-  let(:project) { double(:project, repo: 'something') }
+  let(:project) { double(:project, name: 'something') }
   let(:data) do
     {
-      'github_username' => 'xyz',
+      'username' => 'xyz',
       'status' => 'success',
       'branch' => 'master'
     }
@@ -20,14 +20,14 @@ describe Shiplight::Build do
   end
 
   context '#repo' do
-    it 'returns the project repo' do
-      expect(subject.repo).to be(project.repo)
+    it 'returns the project name' do
+      expect(subject.repo).to be(project.name)
     end
   end
 
   context '#user' do
-    it 'returns github_username' do
-      expect(subject.user).to eq(data['github_username'])
+    it 'returns username' do
+      expect(subject.user).to eq(data['username'])
     end
   end
 

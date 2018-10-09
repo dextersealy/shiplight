@@ -1,8 +1,9 @@
 PATH
   remote: .
   specs:
-    shiplight (0.1.0)
+    shiplight (0.2.0)
       httparty (~> 0.15)
+      inifile (~> 3.0)
       rb-blink1 (~> 0.0)
 
 GEM
@@ -13,6 +14,7 @@ GEM
     diff-lcs (1.3)
     httparty (0.15.6)
       multi_xml (>= 0.5.2)
+    inifile (3.0.0)
     multi_xml (0.6.0)
     parallel (1.12.0)
     parser (2.4.0.2)
@@ -56,4 +58,4 @@ DEPENDENCIES
   shiplight!
 
 BUNDLED WITH
-   1.16.0
+   1.16.2

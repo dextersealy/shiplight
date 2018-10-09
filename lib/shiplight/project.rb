@@ -2,16 +2,22 @@ require_relative 'build_factory'
 
 module Shiplight
   class Project
-    def initialize(data)
+    def initialize(organization, data)
+      @organization = organization
       @data = data
     end
 
     def repo
-      @data['repository_name']
+      @data['name']
+    end
+
+    def path
+      "#{organization.path}/projects/#{uuid}"
     end
 
     def builds
-      BuildFactory.new(self, @data['builds'])
+      return [] unless (data = client.get("#{path}/builds"))
+      BuildFactory.new(self, data.fetch('builds'))
     end
 
     def match?(name)
@@ -24,6 +30,14 @@ module Shiplight
 
     def respond_to_missing?(method_name, *)
       @data.key?(method_name.to_s) || super
+    end
+
+    private
+
+    attr_reader :organization
+
+    def client
+      organization.client
     end
   end
 end

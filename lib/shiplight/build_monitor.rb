@@ -44,7 +44,9 @@ module Shiplight
     def current_builds
       return filtered_builds unless cutoff > 0
       since = Time.now - cutoff * 60 * 60
-      filtered_builds.select { |build| Time.parse(build.finished_at) >= since }
+      filtered_builds.reject do |build|
+        build.finished_at && Time.parse(build.finished_at) < since
+      end
     end
 
     def filtered_builds
@@ -55,10 +57,14 @@ module Shiplight
     end
 
     def projects
-      projects = client.projects
-      projects = projects.select { |project| project.match?(repo) } if repo
-      projects = projects.reject { |project| project.match?(exclude) } if exclude
+      projects = organization.projects
+      projects = projects.select { |p| p.match?(repo) } if repo
+      projects = projects.reject { |p| p.match?(exclude) } if exclude
       projects
+    end
+
+    def organization
+      client.organization
     end
 
     def verbose?

@@ -8,11 +8,11 @@ module Shiplight
     end
 
     def repo
-      project ? project.repo : nil
+      project ? project.name : nil
     end
 
     def user
-      @data['github_username']
+      @data['username']
     end
 
     def match?(name)
