@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'project_factory'
 
 module Shiplight
@@ -23,6 +25,7 @@ module Shiplight
 
     def projects
       return [] unless (data = client.get("#{path}/projects"))
+
       ProjectFactory.new(self, data.fetch('projects'))
     end
 

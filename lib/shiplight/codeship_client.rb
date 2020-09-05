@@ -1,11 +1,14 @@
+# frozen_string_literal: true
+
 require 'HTTParty'
 require 'json'
 require 'inifile'
+require 'logger'
 require_relative 'organization_factory'
 
 module Shiplight
   class CodeshipClient
-    HOST = 'api.codeship.com/v2'.freeze
+    HOST = 'api.codeship.com/v2'
     HTTP_CLIENT_ERRORS = [
       Errno::EADDRNOTAVAIL,
       Errno::ECONNRESET,
@@ -27,15 +30,15 @@ module Shiplight
 
     def get(endpoint)
       response = HTTParty.get(
-        path_to(endpoint),
-        headers: { authorization: access_token },
-        format: :json
+        path_to(endpoint), headers: { authorization: access_token }, format: :json
       )
       return response.parsed_response if response.success?
+
       login if response.unauthorized?
       nil
     rescue *HTTP_CLIENT_ERRORS => e
-      puts "ignoring error #{e.message}"
+      logger.warn("ignoring error #{e.message}")
+      nil
     end
 
     def organization
@@ -52,6 +55,7 @@ module Shiplight
         basic_auth: { username: username, password: password }
       )
       raise 'login failed' unless response.success?
+
       @access_token = response.parsed_response['access_token']
       @data = response.parsed_response['organizations']
     end
@@ -66,7 +70,8 @@ module Shiplight
 
     def ensure_credentials
       return if username && password
-      puts "error: CodeShip credentials not found in #{inifile_path}"
+
+      logger.error("CodeShip credentials not found in #{inifile_path}")
       raise Interrupt
     end
 
@@ -90,6 +95,10 @@ module Shiplight
 
     def inifile_path
       File.join(ENV['HOME'], '.shiplight', 'credentials')
+    end
+
+    def logger
+      @logger ||= Logger.new($stdout)
     end
   end
 end

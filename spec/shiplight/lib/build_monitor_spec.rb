@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 require 'build_monitor'
 
@@ -12,6 +14,7 @@ class MockOrganization
 
   def projects
     raise Interrupt if @countdown.zero?
+
     @countdown -= 1
     Shiplight::ProjectFactory.new(self, @projects)
   end
@@ -31,9 +34,8 @@ class MockClient
 
   def get(path)
     @projects.each do |project|
-      if path == "#{organization.path}/projects/#{project['uuid']}/builds"
-        break { 'builds' => project['builds'] }
-      end
+      target = "#{organization.path}/projects/#{project['uuid']}/builds"
+      break { 'builds' => project['builds'] } if path == target
     end
   end
 end

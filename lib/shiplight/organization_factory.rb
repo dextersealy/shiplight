@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'organization'
 
 module Shiplight
@@ -13,6 +15,7 @@ module Shiplight
       uuids = []
       @data.each do |organization|
         next if uuids.include?(organization['uuid'])
+
         yield Organization.new(@client, organization)
         uuids << organization['uuid']
       end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'logger'
 require_relative 'codeship_client'
 require_relative 'status_indicator'
@@ -36,13 +38,15 @@ module Shiplight
       builds = current_builds.group_by(&:status)
       %w[testing error success].find do |status|
         next unless builds.key?(status)
+
         log_build_status(builds[status])
         true
       end
     end
 
     def current_builds
-      return filtered_builds unless cutoff > 0
+      return filtered_builds unless cutoff.positive?
+
       since = Time.now - cutoff * 60 * 60
       filtered_builds.reject do |build|
         build.finished_at && Time.parse(build.finished_at) < since
@@ -52,8 +56,7 @@ module Shiplight
     def filtered_builds
       builds = projects.map { |project| project.builds.to_a }.flatten
       builds = builds.uniq { |build| [build.repo, build.branch] }
-      builds = builds.select { |build| build.match?(user) }
-      builds
+      builds.select { |build| build.match?(user) }
     end
 
     def projects
@@ -74,6 +77,7 @@ module Shiplight
     def log_build_status(current_builds)
       current_builds.each do |build|
         next unless verbose? || !previous_builds.include?(build)
+
         log(build)
       end
       self.previous_builds = current_builds
@@ -95,7 +99,7 @@ module Shiplight
     end
 
     def logger
-      @logger ||= Logger.new(STDOUT)
+      @logger ||= Logger.new($stdout)
     end
   end
 end

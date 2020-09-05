@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Shiplight
   class Build
     attr_reader :project

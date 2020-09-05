@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'blink1'
 
 module Shiplight
@@ -5,7 +7,7 @@ module Shiplight
     LED_PATTERNS = {
       'testing' => [:solid, [0xff, 0xdf, 0x00]],
       'success' => [:solid, [0x00, 0xc0, 0x00]],
-      'error'   => [:blink, [0xc0, 0x00, 0x00]]
+      'error' => [:solid, [0xc0, 0x00, 0x00]]
     }.freeze
 
     DELAY = 1000

@@ -1,12 +1,14 @@
 #!/usr/bin/env ruby
 
+# frozen_string_literal: true
+
 require 'shiplight'
 
 USAGE = <<USAGE.strip.freeze
   Usage: shiplight [-i interval] [-r repo] [-u user] [-v]
 USAGE
 
-HELP = <<HELP.freeze
+HELP = <<HELP
   -e, --exclude <regex>   project(s) to exclude from monitoring
   -h, --help              show this help
   -i, --interval          polling interval (seconds)
