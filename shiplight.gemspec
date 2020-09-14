@@ -9,9 +9,9 @@ Gem::Specification.new do |spec|
   spec.version = Shiplight::VERSION
   spec.authors = ['Dexter Sealy']
   spec.email = ['dextersealy@gmail.com']
-  spec.required_ruby_version = '>= 2.4'
+  spec.required_ruby_version = '>= 2.6'
 
-  spec.summary = 'Display Codeship status with blink(1) indicator light'
+  spec.summary = 'Display status of Github checks with blink(1) indicator light'
   # spec.description   = 'Write a longer description or delete this line.'
   spec.homepage = 'https://github.com/dextersealy/ship-light'
   spec.license = 'MIT'
@@ -35,9 +35,9 @@ Gem::Specification.new do |spec|
   spec.executables = ['shiplight']
   spec.require_paths = ['lib']
 
-  spec.add_runtime_dependency 'httparty'
   spec.add_runtime_dependency 'inifile'
   spec.add_runtime_dependency 'rb-blink1'
+  spec.add_runtime_dependency 'octokit', '>= 4.0'
 
   spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'byebug'

@@ -5,9 +5,9 @@ require 'blink1'
 module Shiplight
   class StatusIndicator
     LED_PATTERNS = {
-      'testing' => [:solid, [0xff, 0xdf, 0x00]],
+      'pending' => [:solid, [0xff, 0xdf, 0x00]],
       'success' => [:solid, [0x00, 0xc0, 0x00]],
-      'error' => [:solid, [0xc0, 0x00, 0x00]]
+      'failure' => [:solid, [0xc0, 0x00, 0x00]]
     }.freeze
 
     DELAY = 1000

@@ -1,28 +1,37 @@
 # frozen_string_literal: true
 
 require 'logger'
-require_relative 'codeship_client'
+require_relative 'github_client'
 require_relative 'status_indicator'
 
 module Shiplight
   class BuildMonitor
     POLL_INTERVAL = 30
+    HTTP_CLIENT_ERRORS = [
+      Errno::EADDRNOTAVAIL,
+      Errno::ECONNRESET,
+      Errno::ENETDOWN,
+      Errno::ENETUNREACH,
+      Errno::ETIMEDOUT,
+      Errno::EHOSTUNREACH,
+      Timeout::Error
+    ].freeze
 
     def initialize(options = {})
       @user = options[:user]
-      @repo = options[:repo]
+      @target = options[:repo]
       @exclude = options[:exclude]
       @verbose = options[:verbose] || false
-      @cutoff = options[:within] ? options[:within].to_i : 0
+      @cutoff = options[:within].to_i * 60 * 60 if options[:within]
       @interval = options[:interval] ? options[:interval].to_i : POLL_INTERVAL
-      @previous_builds = []
     end
 
     def run
-      logger << "=> Starting CodeShip build monitor\n"
+      logger << "=> Starting Github build monitor\n"
       logger << "=> Ctrl-C to stop monitoring\n"
+
       loop do
-        indicator.status = build_status
+        indicator.status = handle_network_errors { build_status }
         sleep(interval)
       end
     rescue Interrupt
@@ -31,67 +40,79 @@ module Shiplight
 
     private
 
-    attr_reader :user, :repo, :exclude, :interval, :cutoff
-    attr_accessor :previous_builds
+    attr_reader :user, :target, :exclude, :interval, :cutoff
+
+    def handle_network_errors
+      yield
+    rescue *HTTP_CLIENT_ERRORS => e
+      logger.warn("ignoring error #{e.message}")
+    end
 
     def build_status
-      builds = current_builds.group_by(&:status)
-      %w[testing error success].find do |status|
-        next unless builds.key?(status)
+      each_repo do |repo|
+        each_commit(repo) do |branch, commit|
+          if match?(commit) && (status = commit_status(repo, commit))
+            log(repo, branch, commit, status)
+            return status if status != 'success'
+          end
+        end
+      end
 
-        log_build_status(builds[status])
-        true
+      'success'
+    end
+
+    def each_repo
+      client.org_repos('CardFlight', sort: :pushed).each do |repo|
+        next if target && !repo.name.match?(target)
+        next if exclude && repo.name.match?(exclude)
+
+        yield repo
       end
     end
 
-    def current_builds
-      return filtered_builds unless cutoff.positive?
-
-      since = Time.now - cutoff * 60 * 60
-      filtered_builds.reject do |build|
-        build.finished_at && Time.parse(build.finished_at) < since
+    def each_commit(repo)
+      client.branches(repo.id).each do |branch|
+        yield branch, client.commit(repo.id, branch.commit.sha)
       end
     end
 
-    def filtered_builds
-      builds = projects.map { |project| project.builds.to_a }.flatten
-      builds = builds.uniq { |build| [build.repo, build.branch] }
-      builds.select { |build| build.match?(user) }
+    def match?(commit)
+      return unless (author = commit.author)
+      return if user && !author.login.match?(user)
+      return if cutoff && commit.commit.author.date < Time.now - cutoff
+
+      true
     end
 
-    def projects
-      projects = organization.projects
-      projects = projects.select { |p| p.match?(repo) } if repo
-      projects = projects.reject { |p| p.match?(exclude) } if exclude
-      projects
+    def commit_status(repo, commit)
+      return if (runs = client.check_runs_for_commit(repo, commit)).empty?
+
+      if runs.map(&:status).uniq != ['completed']
+        'pending'
+      elsif runs.map(&:conclusion).uniq == ['success']
+        'success'
+      else
+        'failure'
+      end
     end
 
-    def organization
-      client.organization
+    def log(repo, branch, commit, status)
+      return unless verbose? || status != 'success'
+
+      logger.info(<<~HEREDOC.gsub(/\s+/, ' '))
+        #{status.upcase}:
+        #{repo.name},
+        #{branch.name},
+        #{commit.author.login}
+      HEREDOC
     end
 
     def verbose?
       @verbose
     end
 
-    def log_build_status(current_builds)
-      current_builds.each do |build|
-        next unless verbose? || !previous_builds.include?(build)
-
-        log(build)
-      end
-      self.previous_builds = current_builds
-    end
-
-    def log(build)
-      logger.info(
-        "#{build.status.upcase}: #{build.repo}, #{build.branch}," \
-        " #{build.user}"
-      )
-    end
-
     def client
-      @client ||= CodeshipClient.new
+      @client ||= Shiplight::GithubClient.new
     end
 
     def indicator

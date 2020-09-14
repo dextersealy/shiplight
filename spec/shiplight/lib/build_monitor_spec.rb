@@ -103,6 +103,7 @@ describe Shiplight::BuildMonitor do
 
     describe 'when not interrupted' do
       let(:repeat_count) { 3 }
+
       it 'sets the status periodically' do
         expect(indicator).to receive(:status=).exactly(repeat_count + 1).times
         subject.run

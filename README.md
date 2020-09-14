@@ -20,18 +20,18 @@ Or install it yourself as:
 
 Connect the [blink(1)](https://blink1.thingm.com/) USB notification light to your computer.
 
-### Configure CodeShip credentials
+### Configure Github credentials
 
-Shiplight uses the [Codeship API 2.0](https://apidocs.codeship.com/v2/introduction)
-to monitor projects and it uses Basic Auth to authenticate the user.
-Shiplight looks for the Basic Auth credentials in a local file named
+Shiplight uses the GitHub API v3 to monitor projects and requires a
+personal access token for
+[authentication](https://docs.github.com/en/rest/overview/resources-in-the-rest-api#authentication).
+Shiplight looks for the personal access token in a local file named
 `credentials` in a folder named `.shiplight` in your home directory.
-The files look like this:
+The file looks like this:
 
 ```
-[default]
-username=<codeship-username>
-password=<codeship-password>
+[github]
+token=<github-personal-access-token>
 ```
 
 ### Monitor all projects
