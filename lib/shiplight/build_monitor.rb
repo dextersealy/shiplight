@@ -24,6 +24,7 @@ module Shiplight
       @verbose = options[:verbose] || false
       @cutoff = options[:within].to_i * 60 * 60 if options[:within]
       @interval = options[:interval] ? options[:interval].to_i : POLL_INTERVAL
+      @history = {}
     end
 
     def run
@@ -31,7 +32,7 @@ module Shiplight
       logger << "=> Ctrl-C to stop monitoring\n"
 
       loop do
-        indicator.status = handle_network_errors { build_status }
+        indicator.status = handle_network_errors { status }
         sleep(interval)
       end
     rescue Interrupt
@@ -40,7 +41,7 @@ module Shiplight
 
     private
 
-    attr_reader :user, :target, :exclude, :interval, :cutoff
+    attr_reader :user, :target, :exclude, :interval, :cutoff, :history
 
     def handle_network_errors
       yield
@@ -48,7 +49,7 @@ module Shiplight
       logger.warn("ignoring error #{e.message}")
     end
 
-    def build_status
+    def status
       each_repo do |repo|
         each_commit(repo) do |branch, commit|
           if match?(commit) && (status = commit_status(repo, commit))
@@ -97,7 +98,9 @@ module Shiplight
     end
 
     def log(repo, branch, commit, status)
-      return unless verbose? || status != 'success'
+      return unless verbose? || history[commit.sha] != status
+
+      history[commit.sha] = status
 
       logger.info(<<~HEREDOC.gsub(/\s+/, ' '))
         #{status.upcase}:
