@@ -7,14 +7,11 @@ require_relative 'status_indicator'
 module Shiplight
   class BuildMonitor
     POLL_INTERVAL = 30
-    HTTP_CLIENT_ERRORS = [
-      Errno::EADDRNOTAVAIL,
-      Errno::ECONNRESET,
+    NETWORK_ERRORS = [
       Errno::ENETDOWN,
-      Errno::ENETUNREACH,
-      Errno::ETIMEDOUT,
-      Errno::EHOSTUNREACH,
-      Timeout::Error
+      Faraday::ConnectionFailed,
+      Faraday::SSLError,
+      Faraday::TimeoutError
     ].freeze
 
     def initialize(options = {})
@@ -45,8 +42,8 @@ module Shiplight
 
     def handle_network_errors
       yield
-    rescue *HTTP_CLIENT_ERRORS => e
-      logger.warn("ignoring error #{e.message}")
+    rescue *NETWORK_ERRORS => e
+      logger.warn("ignoring error #{e.message}") if verbose?
     end
 
     def status
